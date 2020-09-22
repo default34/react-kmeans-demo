@@ -82,7 +82,7 @@ export let clusterFacts = (givenFacts, labels) => {
 export let curriedClusterFacts = R.curry(clusterFacts)
 
 export let clusterByKMeans = (centroids, givenFacts) => {
-  let scaledGivenFacts = scaleFacts(R.map(R.omit(['cluster', 'label']), givenFacts))
+  let scaledGivenFacts = scaleFacts(R.map(R.omit(["cluster", "label"]), givenFacts))
   let scaledCentroids = scaleFacts(centroids)
 
   let clusteredFacts = R.pipe(
@@ -94,8 +94,8 @@ export let clusterByKMeans = (centroids, givenFacts) => {
   let updatedCentroids = R.pipe(
     R.groupBy(fact => fact.cluster),
     R.values,
-    R.map(xs => ({experience: roundTo(2, R.mean(R.pluck('experience', xs))),
-                  salary: roundTo(2, R.mean(R.pluck('salary', xs)))}))
+    R.map(xs => ({experience: roundTo(2, R.mean(R.pluck("experience", xs))),
+                  salary: roundTo(2, R.mean(R.pluck("salary", xs)))}))
   )(clusteredFacts)
 
   return [

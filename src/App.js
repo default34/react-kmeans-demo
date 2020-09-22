@@ -55,7 +55,7 @@ function App() {
             />}
           >
             <Scatter dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.default}} data={resumes}/>
-            <Scatter dataStyle={{fill: '#ff0000'}} data={centroids}/>
+            <Scatter dataStyle={{fill: "#ff0000"}} data={centroids}/>
 
             {makeAxisX()}
             {makeAxisY()}
@@ -67,7 +67,7 @@ function App() {
             Run Iteration
           </Button>
 
-          <div style={{display: 'flex'}}>
+          <div style={{display: "flex"}}>
             <pre style={{padding: "1rem 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
                 Centroids:
