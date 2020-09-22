@@ -27,8 +27,8 @@ function App() {
     setResumes(clusteredFacts)
 
     let clusters = R.pipe(
-      R.groupBy(R.prop('cluster')),
-      R.map(countBy(R.prop('label')))
+      R.groupBy(R.prop("cluster")),
+      R.map(countBy(R.prop("label")))
     )(clusteredFacts)
 
     setCentroidsLog(JSON.stringify(updatedCentroids, null, 2))
@@ -54,7 +54,7 @@ function App() {
               cursorComponent={<LineSegment style={{stroke: "grey", strokeDasharray: "4 4"}}/>}
             />}
           >
-            <Scatter dataStyle={{fill: '#026aa7'}} data={resumes}/>
+            <Scatter dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.default}} data={resumes}/>
             <Scatter dataStyle={{fill: '#ff0000'}} data={centroids}/>
 
             {makeAxisX()}
@@ -89,7 +89,7 @@ function App() {
 }
 
 function Scatter({data, dataStyle, ...rest}) {
-  let cleanData = R.map(R.pick(["experience", "salary"]), data)
+  let cleanData = R.map(R.pick(["experience", "salary", "cluster"]), data)
   return <VictoryScatter
     {...rest}
     data={cleanData}
@@ -135,6 +135,13 @@ function Button({onClick = null, children}) {
   >
     {children}
   </button>
+}
+
+let colors = {
+  0: "#026aa7",
+  1: "#33bb33",
+  2: "#ddbb33",
+  default: "#999999",
 }
 
 export default App
