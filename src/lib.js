@@ -34,19 +34,6 @@ export let scale = (ns) => {
   return ns.map(n => (n - min) / (max - min))
 }
 
-export let getDistance = (record1, record2) => {
-  let keys1 = R.keys(record1).filter(k => k != "label")
-  let keys2 = R.keys(record2).filter(k => k != "label")
-  let uniqKeys = R.uniq([...keys1, ...keys2])
-  return R.pipe(
-    R.map(k => (record1[k] - record2[k]) ** 2),
-    R.sum,
-    powTo(0.5),
-  )(uniqKeys)
-}
-
-export let curriedGetDistance = R.curry(getDistance)
-
 export let scaleFacts = (facts) => {
   if (!facts.length) {
     return []
@@ -64,31 +51,38 @@ export let scaleFacts = (facts) => {
   )
 }
 
-export let distances = (centroids, givenFacts) => {
-    return R.map(fact => R.map(curriedGetDistance(fact), centroids), givenFacts)
-}
+export let getDistance = R.curry((record1, record2) => {
+  let keys1 = R.keys(record1).filter(k => k != "label")
+  let keys2 = R.keys(record2).filter(k => k != "label")
+  let uniqKeys = R.uniq([...keys1, ...keys2])
+  return R.pipe(
+    R.map(k => (record1[k] - record2[k]) ** 2),
+    R.sum,
+    powTo(0.5),
+  )(uniqKeys)
+})
 
-export let curriedDistances = R.curry(distances)
+export let distances = R.curry((centroids, givenFacts) => {
+    return R.map(fact => R.map(getDistance(fact), centroids), givenFacts)
+})
 
-export let clusterLabels = (distances) => {
+export let labels = (distances) => {
   return R.map(distance => R.indexOf(min(distance), distance), distances)
 }
 
-export let clusterFacts = (givenFacts, labels) => {
+export let classifyFacts = R.curry((givenFacts, labels) => {
   return givenFacts.map((fact, i) =>
     ({...fact, cluster: labels[i]}))
-}
-
-export let curriedClusterFacts = R.curry(clusterFacts)
+})
 
 export let clusterByKMeans = (centroids, givenFacts) => {
   let scaledGivenFacts = scaleFacts(R.map(R.omit(["cluster", "label"]), givenFacts))
   let scaledCentroids = scaleFacts(centroids)
 
   let clusteredFacts = R.pipe(
-    curriedDistances(scaledCentroids),
-    clusterLabels,
-    curriedClusterFacts(givenFacts)
+    distances(scaledCentroids),
+    labels,
+    classifyFacts(givenFacts)
   )(scaledGivenFacts)
 
   let updatedCentroids = R.pipe(

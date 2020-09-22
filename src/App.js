@@ -20,19 +20,19 @@ function App() {
     {experience: 2, salary: 2}
   ])
 
-  let runIteration = useCallback(event => {
+  let runIteration = useCallback(() => {
     let [updatedCentroids, clusteredFacts] =  clusterByKMeans(centroids, resumes)
 
     setCentroids(updatedCentroids)
     setResumes(clusteredFacts)
 
-    let clusters = R.pipe(
+    let clustersLog = R.pipe(
       R.groupBy(R.prop("cluster")),
       R.map(countBy(R.prop("label")))
     )(clusteredFacts)
 
     setCentroidsLog(JSON.stringify(updatedCentroids, null, 2))
-    setClustersLog(JSON.stringify(clusters, null, 2))
+    setClustersLog(JSON.stringify(clustersLog, null, 2))
   })
 
   return (
