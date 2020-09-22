@@ -6,25 +6,33 @@ import {
   VictoryChart, VictoryAxis, VictoryTheme, VictoryScatter,
   VictoryLabel,
 } from "victory"
-import {round, clusterByKMeans} from "./lib"
+import {round, countBy, clusterByKMeans} from "./lib"
 import db from "./db.json"
 
 function App() {
   let ref = useRef()
   let [resumes, setResumes] = useState(db.resumes.map(R.omit(["english"])))
-  let [klog, setKLog] = useState("...")
+  let [centroidsLog, setCentroidsLog] = useState("...")
+  let [clustersLog, setClustersLog] = useState("...")
   let [centroids, setCentroids] = useState([
     {experience: 8, salary: 7},
     {experience: 4, salary: 4},
     {experience: 2, salary: 2}
   ])
 
-  let clustering = useCallback(event => {
+  let runIteration = useCallback(event => {
     let [updatedCentroids, clusteredFacts] =  clusterByKMeans(centroids, resumes)
 
     setCentroids(updatedCentroids)
     setResumes(clusteredFacts)
-    setKLog(JSON.stringify(updatedCentroids, null, 2))
+
+    let clusters = R.pipe(
+      R.groupBy(R.prop('cluster')),
+      R.map(countBy(R.prop('label')))
+    )(clusteredFacts)
+
+    setCentroidsLog(JSON.stringify(updatedCentroids, null, 2))
+    setClustersLog(JSON.stringify(clusters, null, 2))
   })
 
   return (
@@ -54,14 +62,27 @@ function App() {
           </VictoryChart>
         </div>
 
-        <div style={{padding: "0 1rem"}}>
-        <Button onClick={clustering}>
-          Cluster
-        </Button>
-        <pre style={{background: "white", padding: "1rem 0.5rem"}}><code style={{fontSize: "1rem"}}>
-          {klog}
-        </code></pre>
-      </div>
+        <div style={{background: "white", padding: "0 1rem"}}>
+          <Button onClick={runIteration}>
+            Run Iteration
+          </Button>
+
+          <div style={{display: 'flex'}}>
+            <pre style={{padding: "1rem 0.5rem"}}>
+              <code style={{fontSize: "1rem"}}>
+                Centroids:
+                {centroidsLog}
+              </code>
+            </pre>
+
+            <pre style={{padding: "1rem 0.5rem"}}>
+              <code style={{fontSize: "1rem"}}>
+                Clusters:
+                {clustersLog}
+              </code>
+            </pre>
+          </div>
+        </div>
       </div>
     </div>
   )

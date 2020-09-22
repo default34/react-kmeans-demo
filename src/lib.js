@@ -6,6 +6,14 @@ export let min = arr => {
   return Math.min(...arr)
 }
 
+// Collections =====================================================================================
+export let countBy = R.curry((get, xs) => {
+  return xs.reduce((z, x) => {
+    let k = get(x) // "a"
+    return {...z, [k]: z[k] == null ? 1 : z[k] + 1}
+  }, {})
+})
+
 // Math ============================================================================================
 export let pow = R.curry((a, b) => {
   return a ** b
