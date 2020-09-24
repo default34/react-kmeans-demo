@@ -13,10 +13,8 @@
     "victory": "^35.0.9"
   },
   "scripts": {
-    "start": "EXTEND_ESLINT=true react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "EXTEND_ESLINT=true react-scripts start",
+    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": "react-app"
