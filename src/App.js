@@ -14,9 +14,9 @@ function App() {
   let [resumes, setResumes] = useState(db.resumes.map(R.omit(["english"])))
   let [clustersLog, setClustersLog] = useState("...")
   let [centroids, setCentroids] = useState([
-    {experience: 1, salary: 1},
-    {experience: 4, salary: 3},
-    {experience: 8, salary: 6},
+    {experience: 1, salary: 1, label: "junior"},
+    {experience: 4, salary: 3, label: "middle"},
+    {experience: 8, salary: 6, label: "senior"},
   ])
   let [centroidsLog, setCentroidsLog] = useState(JSON.stringify(centroids, null, 2))
 
