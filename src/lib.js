@@ -1,18 +1,32 @@
 import * as R from "rambdax"
 
-// Helpers ====================================================================================
-
-export let min = arr => {
-  return Math.min(...arr)
+// Dev. Helpers ====================================================================================
+export let logAs = (label) => {
+  return function (x) {
+    console.log(label + ":", x)
+    return x
+  }
 }
 
 // Collections =====================================================================================
-export let countBy = R.curry((get, xs) => {
-  return xs.reduce((z, x) => {
-    let k = get(x) // "a"
-    return {...z, [k]: z[k] == null ? 1 : z[k] + 1}
-  }, {})
+export let minimum = arr => {
+  return Math.min(...arr)
+}
+
+export let maximum = arr => {
+  return Math.max(...arr)
+}
+
+export let countBy = R.curry((fn, xs) => {
+  return R.map(R.length, R.groupBy(fn, xs))
 })
+
+export let invert = (obj) => {
+  return R.keys(obj).reduce((z, k) => {
+    let v = obj[k]
+    return {...z, [v]: k}
+  }, {})
+}
 
 // Math ============================================================================================
 export let pow = R.curry((a, b) => {
@@ -34,6 +48,17 @@ export let scale = (ns) => {
   return ns.map(n => (n - min) / (max - min))
 }
 
+export let getDistance = R.curry((record1, record2) => {
+  let keys1 = R.keys(record1).filter(k => k != "label")
+  let keys2 = R.keys(record2).filter(k => k != "label")
+  let uniqKeys = R.uniq([...keys1, ...keys2])
+  return R.pipe(
+    R.map(k => (record1[k] - record2[k]) ** 2),
+    R.sum,
+    powTo(0.5),
+  )(uniqKeys)
+})
+
 export let scaleFacts = (facts) => {
   if (!facts.length) {
     return []
@@ -51,28 +76,8 @@ export let scaleFacts = (facts) => {
   )
 }
 
-export let getDistance = R.curry((record1, record2) => {
-  let keys1 = R.keys(record1).filter(k => k != "label")
-  let keys2 = R.keys(record2).filter(k => k != "label")
-  let uniqKeys = R.uniq([...keys1, ...keys2])
-  return R.pipe(
-    R.map(k => (record1[k] - record2[k]) ** 2),
-    R.sum,
-    powTo(0.5),
-  )(uniqKeys)
-})
-
-export let distances = R.curry((centroids, givenFacts) => {
-    return R.map(fact => R.map(getDistance(fact), centroids), givenFacts)
-})
-
-export let labels = (distances) => {
-  return R.map(distance => R.indexOf(min(distance), distance), distances)
-}
-
 export let classifyFacts = R.curry((givenFacts, labels) => {
-  return givenFacts.map((fact, i) =>
-    ({...fact, cluster: labels[i]}))
+  return R.mapIndexed((fact, i) => ({...fact, cluster: labels[i]}), givenFacts)
 })
 
 export let clusterByKMeans = (centroids, givenFacts) => {
@@ -80,16 +85,18 @@ export let clusterByKMeans = (centroids, givenFacts) => {
   let scaledCentroids = scaleFacts(centroids)
 
   let clusteredFacts = R.pipe(
-    distances(scaledCentroids),
-    labels,
+    R.map(fact => R.map(getDistance(fact), scaledCentroids)),
+    R.map(distance => R.indexOf(minimum(distance), distance)),
     classifyFacts(givenFacts)
   )(scaledGivenFacts)
 
   let updatedCentroids = R.pipe(
     R.groupBy(fact => fact.cluster),
     R.values,
-    R.map(xs => ({experience: roundTo(2, R.mean(R.pluck("experience", xs))),
-                  salary: roundTo(2, R.mean(R.pluck("salary", xs)))}))
+    R.map(xs => ({
+      experience: roundTo(2, R.mean(R.pluck("experience", xs))),
+      salary: roundTo(2, R.mean(R.pluck("salary", xs)))
+    }))
   )(clusteredFacts)
 
   return [

@@ -6,7 +6,7 @@ import {
   VictoryChart, VictoryAxis, VictoryTheme, VictoryScatter,
   VictoryLabel,
 } from "victory"
-import {round, countBy, clusterByKMeans} from "./lib"
+import {round, countBy, clustersByKMeans} from "./lib"
 import db from "./db.json"
 
 function App() {
@@ -21,14 +21,14 @@ function App() {
   ])
 
   let runIteration = useCallback(() => {
-    let [updatedCentroids, clusteredFacts] =  clusterByKMeans(centroids, resumes)
+    let [updatedCentroids, clusteredFacts] = clustersByKMeans(centroids, resumes)
 
     setCentroids(updatedCentroids)
     setResumes(clusteredFacts)
 
     let clustersLog = R.pipe(
       R.groupBy(R.prop("cluster")),
-      R.map(countBy(R.prop("label")))
+      R.map(countBy(R.prop("label"))),
     )(clusteredFacts)
 
     setCentroidsLog(JSON.stringify(updatedCentroids, null, 2))
@@ -54,7 +54,7 @@ function App() {
               cursorComponent={<LineSegment style={{stroke: "grey", strokeDasharray: "4 4"}}/>}
             />}
           >
-            <Scatter dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.default}} data={resumes}/>
+            <Scatter dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.unknown}} data={resumes}/>
             <Scatter dataStyle={{fill: "#ff0000"}} data={centroids}/>
 
             {makeAxisX()}
@@ -62,7 +62,7 @@ function App() {
           </VictoryChart>
         </div>
 
-        <div style={{background: "white", padding: "0 1rem"}}>
+        <div style={{padding: "0 1rem"}}>
           <Button onClick={runIteration}>
             Run Iteration
           </Button>
@@ -70,14 +70,14 @@ function App() {
           <div style={{display: "flex"}}>
             <pre style={{padding: "1rem 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
-                Centroids:
+                Centroids:{" "}
                 {centroidsLog}
               </code>
             </pre>
 
             <pre style={{padding: "1rem 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
-                Clusters:
+                Clusters:{" "}
                 {clustersLog}
               </code>
             </pre>
@@ -128,9 +128,10 @@ function Button({onClick = null, children}) {
     style={{
       background: "#fff",
       border: "0px",
+      borderRadius: "4px",
       cursor: "pointer",
       fontSize: "24px",
-      padding: "0.5rem",
+      padding: "0.5em 1em",
     }}
   >
     {children}
@@ -138,10 +139,13 @@ function Button({onClick = null, children}) {
 }
 
 let colors = {
-  0: "#026aa7",
-  1: "#33bb33",
-  2: "#ddbb33",
-  default: "#999999",
+  unknown: "#aaaaaa",
+  junior: "#33bb33",
+  0: "#33bb33",
+  middle: "#ddbb33",
+  1: "#ddbb33",
+  senior: "#dd3333",
+  2: "#dd3333",
 }
 
 export default App
