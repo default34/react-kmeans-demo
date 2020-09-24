@@ -12,13 +12,13 @@ import db from "./db.json"
 function App() {
   let ref = useRef()
   let [resumes, setResumes] = useState(db.resumes.map(R.omit(["english"])))
-  let [centroidsLog, setCentroidsLog] = useState("...")
   let [clustersLog, setClustersLog] = useState("...")
   let [centroids, setCentroids] = useState([
     {experience: 1, salary: 1},
     {experience: 4, salary: 3},
     {experience: 8, salary: 6},
   ])
+  let [centroidsLog, setCentroidsLog] = useState(JSON.stringify(centroids, null, 2))
 
   let runIteration = useCallback(() => {
     let [updatedCentroids, clusteredFacts] = clustersByKMeans(centroids, resumes)
@@ -77,7 +77,7 @@ function App() {
             Run Iteration
           </Button>
 
-          <div style={{display: "flex"}}>
+          <div style={{display: "flex", gap: "1rem"}}>
             <pre style={{padding: "0 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
                 Centroids:{" "}
