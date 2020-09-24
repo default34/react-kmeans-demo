@@ -15,9 +15,9 @@ function App() {
   let [centroidsLog, setCentroidsLog] = useState("...")
   let [clustersLog, setClustersLog] = useState("...")
   let [centroids, setCentroids] = useState([
-    {experience: 2, salary: 2},
-    {experience: 4, salary: 4},
-    {experience: 8, salary: 7},
+    {experience: 1, salary: 1},
+    {experience: 4, salary: 3},
+    {experience: 8, salary: 6},
   ])
 
   let runIteration = useCallback(() => {
