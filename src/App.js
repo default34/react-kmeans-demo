@@ -15,9 +15,9 @@ function App() {
   let [centroidsLog, setCentroidsLog] = useState("...")
   let [clustersLog, setClustersLog] = useState("...")
   let [centroids, setCentroids] = useState([
-    {experience: 8, salary: 7},
+    {experience: 2, salary: 2},
     {experience: 4, salary: 4},
-    {experience: 2, salary: 2}
+    {experience: 8, salary: 7},
   ])
 
   let runIteration = useCallback(() => {
@@ -54,8 +54,18 @@ function App() {
               cursorComponent={<LineSegment style={{stroke: "grey", strokeDasharray: "4 4"}}/>}
             />}
           >
-            <Scatter dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.unknown}} data={resumes}/>
-            <Scatter dataStyle={{fill: "#ff0000"}} data={centroids}/>
+            <Scatter
+              dataStyle={{fill: ({datum}) => colors[datum.cluster] || colors.unknown}}
+              data={resumes}
+              size={3}
+            />
+
+            <Scatter
+              dataStyle={{fill: colors.centroid}}
+              data={centroids}
+              symbol="plus"
+              size={3}
+            />
 
             {makeAxisX()}
             {makeAxisY()}
@@ -93,7 +103,6 @@ function Scatter({data, dataStyle, ...rest}) {
   return <VictoryScatter
     {...rest}
     data={cleanData}
-    size={3}
     style={{data: dataStyle}}
     x="experience"
     y="salary"
@@ -139,6 +148,7 @@ function Button({onClick = null, children}) {
 }
 
 let colors = {
+  centroid: "#0000ff",
   unknown: "#aaaaaa",
   junior: "#33bb33",
   0: "#33bb33",
