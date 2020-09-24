@@ -68,14 +68,14 @@ function App() {
           </Button>
 
           <div style={{display: "flex"}}>
-            <pre style={{padding: "1rem 0.5rem"}}>
+            <pre style={{padding: "0 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
                 Centroids:{" "}
                 {centroidsLog}
               </code>
             </pre>
 
-            <pre style={{padding: "1rem 0.5rem"}}>
+            <pre style={{padding: "0 0.5rem"}}>
               <code style={{fontSize: "1rem"}}>
                 Clusters:{" "}
                 {clustersLog}

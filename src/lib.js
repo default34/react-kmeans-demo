@@ -80,7 +80,7 @@ export let classifyFacts = R.curry((givenFacts, labels) => {
   return R.mapIndexed((fact, i) => ({...fact, cluster: labels[i]}), givenFacts)
 })
 
-export let clusterByKMeans = (centroids, givenFacts) => {
+export let clustersByKMeans = (centroids, givenFacts) => {
   let scaledGivenFacts = scaleFacts(R.map(R.omit(["cluster", "label"]), givenFacts))
   let scaledCentroids = scaleFacts(centroids)
 
