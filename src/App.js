@@ -118,6 +118,9 @@ function makeAxisX() {
     label="Experience, years"
     axisLabelComponent={<VictoryLabel dy={30}/>}
     tickValues={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+    style={{
+      grid: {stroke: "#aaa", strokeWidth: 0.1},
+    }}
   />
 }
 
@@ -128,6 +131,9 @@ function makeAxisY() {
     label="Salary, $"
     tickFormat={(t) => `${t}k`}
     tickValues={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+    style={{
+      grid: {stroke: "#aaa", strokeWidth: 0.1},
+    }}
   />
 }
 
