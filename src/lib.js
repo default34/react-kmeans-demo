@@ -1,17 +1,45 @@
 import * as R from "rambdax"
 
-// Helpers ====================================================================================
-
-export let min = arr => {
-  return Math.min(...arr)
+// Dev. Helpers ====================================================================================
+export let logAs = (label) => {
+  return function (x) {
+    console.log(label + ":", x)
+    return x
+  }
 }
 
 // Collections =====================================================================================
-export let countBy = R.curry((get, xs) => {
-  return xs.reduce((z, x) => {
-    let k = get(x) // "a"
-    return {...z, [k]: z[k] == null ? 1 : z[k] + 1}
+export let reduce1 = R.curry((fn, xs) => {
+  if (!xs.length) throw new Error("xs must not be empty")
+  let [head, ...tail] = xs
+  return R.reduce(fn, head, tail)
+})
+
+export let minimum = (xs) => reduce1(R.min, xs)
+
+export let maximum = (xs) => reduce1(R.max, xs)
+
+export let minimumBy = (fn, xs) => {
+  return reduce1((x0, xi) => fn(x0) < fn(xi) ? x0 : xi, xs)
+}
+
+export let maximumBy = (fn, xs) => {
+  return reduce1((x0, xi) => fn(x0) > fn(xi) ? x0 : xi, xs)
+}
+
+export let countBy = R.curry((fn, xs) => {
+  return R.map(R.length, R.groupBy(fn, xs))
+})
+
+export let invert = (obj) => {
+  return R.keys(obj).reduce((z, k) => {
+    let v = obj[k]
+    return {...z, [v]: k}
   }, {})
+}
+
+export let meanByProp = R.curry((prop, xs) => {
+  return R.mean(R.pluck(prop, xs))
 })
 
 // Math ============================================================================================
@@ -34,6 +62,17 @@ export let scale = (ns) => {
   return ns.map(n => (n - min) / (max - min))
 }
 
+export let getDistance = R.curry((record1, record2) => {
+  let keys1 = R.keys(record1).filter(k => k != "label")
+  let keys2 = R.keys(record2).filter(k => k != "label")
+  let uniqKeys = R.uniq([...keys1, ...keys2])
+  return R.pipe(
+    R.map(k => (record1[k] - record2[k]) ** 2),
+    R.sum,
+    powTo(0.5),
+  )(uniqKeys)
+})
+
 export let scaleFacts = (facts) => {
   if (!facts.length) {
     return []
@@ -51,49 +90,33 @@ export let scaleFacts = (facts) => {
   )
 }
 
-export let getDistance = R.curry((record1, record2) => {
-  let keys1 = R.keys(record1).filter(k => k != "label")
-  let keys2 = R.keys(record2).filter(k => k != "label")
-  let uniqKeys = R.uniq([...keys1, ...keys2])
-  return R.pipe(
-    R.map(k => (record1[k] - record2[k]) ** 2),
-    R.sum,
-    powTo(0.5),
-  )(uniqKeys)
-})
-
-export let distances = R.curry((centroids, givenFacts) => {
-    return R.map(fact => R.map(getDistance(fact), centroids), givenFacts)
-})
-
-export let labels = (distances) => {
-  return R.map(distance => R.indexOf(min(distance), distance), distances)
-}
-
 export let classifyFacts = R.curry((givenFacts, labels) => {
-  return givenFacts.map((fact, i) =>
-    ({...fact, cluster: labels[i]}))
+  return R.mapIndexed((fact, i) => ({...fact, cluster: labels[i]}), givenFacts)
 })
 
-export let clusterByKMeans = (centroids, givenFacts) => {
-  let scaledGivenFacts = scaleFacts(R.map(R.omit(["cluster", "label"]), givenFacts))
-  let scaledCentroids = scaleFacts(centroids)
+export let clustersByKMeans = (centroids, facts) => {
+  let labels = R.map(R.prop("label"), centroids)
 
-  let clusteredFacts = R.pipe(
-    distances(scaledCentroids),
-    labels,
-    classifyFacts(givenFacts)
-  )(scaledGivenFacts)
+  let scaledGivenFacts = scaleFacts(R.map(R.omit(["cluster", "label"]), facts))
+  let scaledCentroids = scaleFacts(centroids) // [{label}, {label}, {label}]
 
-  let updatedCentroids = R.pipe(
-    R.groupBy(fact => fact.cluster),
-    R.values,
-    R.map(xs => ({experience: roundTo(2, R.mean(R.pluck("experience", xs))),
-                  salary: roundTo(2, R.mean(R.pluck("salary", xs)))}))
-  )(clusteredFacts)
+  let clusteredFacts = R.mapIndexed((fact, i) => {
+    let measuredCentroids = R.map(centroid => ({...centroid, _distance: getDistance(fact, centroid)}), scaledCentroids)
+    let closestCentroid = minimumBy(R.prop("_distance"), measuredCentroids)
+    return {...facts[i], cluster: closestCentroid.label}
+  }, scaledGivenFacts)
+
+  let newCentroids = R.map(label => {
+    let labelFacts = R.filter(R.propEq("cluster", label), clusteredFacts)
+    return {
+      label,
+      experience: roundTo(2, meanByProp("experience", labelFacts)),
+      salary: roundTo(2, meanByProp("salary", labelFacts)),
+    }
+  }, labels)
 
   return [
-    updatedCentroids,
-    clusteredFacts
+    newCentroids,
+    clusteredFacts,
   ]
 }
